@@ -25,39 +25,46 @@ class DashBoardTester:
             urls = config('login_urls').split(',')
             emails = config('USER_NAMES').split(',')
             passwords = config('PASSWORDS').split(',')
+            d_urls = config('destination_urls').split(',')
         except:
             urls = config('login_urls')
             emails = config('USER_NAMES')
             passwords = config('PASSWORDS')
-        return urls,emails,passwords
+            d_urls = config('destination_urls')
+        return urls,emails,passwords ,d_urls
 
     @classmethod    
     def test_requests(cls):
-        urls , mails , passwords = cls.get_info()
-        for url,mail,password in zip(urls,mails,passwords):
-            destination_url = url.replace('/login','')
-            print(destination_url)
-            time.sleep(10)
+        urls , mails , passwords , destination_urls  = cls.get_info()
+        for url,mail,password ,destination_url in zip(urls,mails,passwords,destination_urls):
+    
             cls.browser.get(url)
 
-            WebDriverWait(cls.browser, 10 ).until(EC.presence_of_element_located((By.NAME,'email')))
-            user_name = cls.browser.find_element_by_name("email")
+            WebDriverWait(cls.browser,10).until(EC.presence_of_element_located((By.CSS_SELECTOR,'input[name="email"],#phone_number')))
+            # time.sleep(4)
+            try:
+                user_name = cls.browser.find_element_by_name("email")
+            except:
+                user_name = cls.browser.find_element_by_name('phone_number')
+            user_name.clear()
             user_name.send_keys(mail)
 
             password_box = cls.browser.find_element_by_name("password")
+            password_box.clear()
             password_box.send_keys(password)
 
             password_box.send_keys(Keys.ENTER)
-            time.sleep(5)
+            time.sleep(4)
             current_url = cls.browser.current_url
             print(current_url)
             # response = requests.get(current_url).status_code
             if current_url != destination_url:
-                print("Request Unsuccessful")
+                print("Login Unsuccessful")
                 msg = f"Failed to login this page {url}"
                 cls.send_email(msg)
             else:
-                print("Request Successful")
+                print("Login Successful")
+            time.sleep(2)
         cls.browser.close()
     
     @staticmethod
