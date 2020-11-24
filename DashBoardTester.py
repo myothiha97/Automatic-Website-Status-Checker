@@ -17,10 +17,13 @@ from email.message import EmailMessage
 
 class DashBoardTester:
 
-    browser = webdriver.Chrome(config('CHROMEDRIVER'))
+    __browser = webdriver.Chrome(config('CHROMEDRIVER'))
+
+    def __init__(self):
+        raise Exception("Instantiation doesnt support yet for this class")
 
     @staticmethod
-    def get_info():
+    def __get_info():
         try:
             urls = config('login_urls').split(',')
             emails = config('USER_NAMES').split(',')
@@ -35,27 +38,27 @@ class DashBoardTester:
 
     @classmethod    
     def test_requests(cls):
-        urls , mails , passwords , destination_urls  = cls.get_info()
+        urls , mails , passwords , destination_urls  = cls.__get_info()
         for url,mail,password ,destination_url in zip(urls,mails,passwords,destination_urls):
     
-            cls.browser.get(url)
+            cls.__browser.get(url)
 
-            WebDriverWait(cls.browser,10).until(EC.presence_of_element_located((By.CSS_SELECTOR,'input[name="email"],#phone_number')))
+            WebDriverWait(cls.__browser,10).until(EC.presence_of_element_located((By.CSS_SELECTOR,'input[name="email"],#phone_number')))
             # time.sleep(4)
             try:
-                user_name = cls.browser.find_element_by_name("email")
+                user_name = cls.__browser.find_element_by_name("email")
             except:
-                user_name = cls.browser.find_element_by_name('phone_number')
+                user_name = cls.__browser.find_element_by_name('phone_number')
             user_name.clear()
             user_name.send_keys(mail)
 
-            password_box = cls.browser.find_element_by_name("password")
+            password_box = cls.__browser.find_element_by_name("password")
             password_box.clear()
             password_box.send_keys(password)
 
             password_box.send_keys(Keys.ENTER)
             time.sleep(4)
-            current_url = cls.browser.current_url
+            current_url = cls.__browser.current_url
             print(current_url)
             # response = requests.get(current_url).status_code
             if current_url != destination_url:
@@ -65,7 +68,7 @@ class DashBoardTester:
             else:
                 print("Login Successful")
             time.sleep(2)
-        cls.browser.close()
+        cls.__browser.close()
     
     @staticmethod
     def send_email(text_message):
@@ -88,6 +91,8 @@ class DashBoardTester:
 if __name__ == "__main__":
     DashBoardTester.test_requests()
     # DashBoardTester.send_email("Mail Success")
+    # dashboard = DashBoardTester()
+    
     
 
 

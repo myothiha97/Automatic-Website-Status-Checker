@@ -7,13 +7,16 @@ from email.message import EmailMessage
 
 class HomePageTester:
     try:
-        urls = config('non_login_urls').split(',')
+        __urls = config('non_login_urls').split(',')
     except:
-        urls = config('non_login_urls')
+        __urls = config('non_login_urls')
+
+    def __init__(self):
+        raise Exception("Instantiation doesnt support yet for this class")
     
     @classmethod
     def test_requests(cls):
-        for url in cls.urls:
+        for url in cls.__urls:
             response = requests.get(url).status_code
             if int(response) != 200:
                 print("Request Unsuccessful")
