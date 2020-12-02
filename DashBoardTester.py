@@ -23,7 +23,13 @@ from email.mime.text import MIMEText
 
 class DashBoardTester:
 
-    __browser = webdriver.Chrome(config('CHROMEDRIVER'))
+    __chrome_options = webdriver.ChromeOptions()
+    __chrome_options.add_argument('--no-sandbox')
+    __chrome_options.add_argument('--disable-gpu')
+    __chrome_options.add_argument('--headless')
+    __chrome_options.add_argument('--disable-dev-shm-usage')
+    __browser = webdriver.Chrome(executable_path=config('CHROMEDRIVER'),chrome_options=__chrome_options)
+
     mydb = connect(
         host = config("host"),
         user = config("username"),
@@ -46,12 +52,12 @@ class DashBoardTester:
     @classmethod    
     def test_requests(cls):
         with open("success_login_webs.csv",'w') as file:
-            fieldnames = ['instance','url']
+            fieldnames = ['instance','url','username','password']
             writer = csv.DictWriter(file,fieldnames=fieldnames)
             writer.writeheader()
 
         with open("failed_login_webs.csv",'w') as file:
-            fieldnames = ['instance','url']
+            fieldnames = ['instance','url','username','password']
             writer = csv.DictWriter(file,fieldnames=fieldnames)
             writer.writeheader()
 
@@ -77,65 +83,95 @@ class DashBoardTester:
             password_box.send_keys(Keys.ENTER)
             time.sleep(4)
             current_url = cls.__browser.current_url
-            print(current_url)
+            print(current_url,'--------',destination_url)
             # response = requests.get(current_url).status_code
             if current_url != destination_url:
                 print("Login Unsuccessful")
                 # msg = f"Failed to login this page {url}"
                 with open('failed_login_webs.csv','a') as file:
-                    fieldnames = ['instance','url']
+                    fieldnames = ['instance','url','username','password']
                     writer = csv.DictWriter(file,fieldnames=fieldnames)
 
-                    writer.writerow({'instance': instance,'url': url})
+                    writer.writerow({'instance': instance,'url': url,'username': mail,'password': password})
 
-                # cls.send_email(msg)
+                
             else:
                 print("Login Successful")
                 with open('success_login_webs.csv','a') as file:
-                    fieldnames = ['instance','url']
+                    fieldnames = ['instance','url','username','password']
                     writer = csv.DictWriter(file,fieldnames=fieldnames)
 
-                    writer.writerow({'instance': instance,'url': url})
+                    writer.writerow({'instance': instance,'url': url,'username': mail,'password': password})
             
             time.sleep(2)
         unsuccess_pages = pandas.read_csv('failed_login_webs.csv')
         success_pages = pandas.read_csv('success_login_webs.csv')
-        table_part1 = f"<html>\
-                        <head></head>\
-                        <body>\
-                            <div style='width:800px;height:auto;margin: auto;padding: 30px; text-align: center;'>\
-                            <h2 style='color:#aa222a;margin: 0;'>Fail Login Pages</h2>\
-                            <div style='width:100%;margin:auto;text-align: center;'>\
-                            <div style='padding:5px;'>\
-                                <table style='font-family: arial, sans-serif;border-collapse: collapse;width: 100%;'>\
-                                <tr>\
-                                    <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Instance</th><th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Url</th>\
+        if unsuccess_pages.empty:
+            failed_count = 0
+            table_part2 = f"<html>\
+                          <head></head>\
+                          <body>\
+                              <header style='width: auto; height: auto; margin: auto;padding: 30px; text-align: left;'>\
+                                  <h2 style='color:#000000'>Website Login Check</h2>\
+                                  <hr>\
+                              </header>\
+                              <div style='width:800px;height:auto;margin: auto;padding: 30px; text-align: center;'>\
+                                <h2 style='color:#000000;margin: 0;'>There is no failed login pages</h2>\
+                              </div>\
+                            "
+        else:
+            failed_count = len(unsuccess_pages)
+            table_part1 = f"<html>\
+                            <head></head>\
+                            <body>\
+                                <header style='width: auto; height: auto; margin: auto;padding: 30px; text-align: left;'>\
+                                  <h2 style='color:#000000'>Website Login Check</h2>\
+                                  <hr>\
+                                </header>\
+                                <div style='width:1000px;height:auto;margin: auto;padding: 30px; text-align: center;'>\
+                                <h2 style='color:#aa222a;margin: 0;'>Fail Login Pages</h2>\
+                                <div style='width:100%;margin:auto;text-align: center;'>\
+                                <div style='padding:5px;'>\
+                                    <table style='font-family: arial, sans-serif;border-collapse: collapse;width: 100%;'>\
+                                    <tr>\
+                                        <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Website Name</th>\
+                                        <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Url</th>\
+                                        <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>User Name</th>\
+                                        <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Password</th>\
+                                    </tr>"
+            for index,row in unsuccess_pages.iterrows():
+                # print(row['instance'],row['url'])
+                concat_str = f"<tr>\
+                                    <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['instance']}</td>\
+                                    <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['url']}</td>\
+                                    <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['username']}</td>\
+                                    <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['password']}</td>\
                                 </tr>"
-        for index,row in unsuccess_pages.iterrows():
-            # print(row['instance'],row['url'])
-            concat_str = f"<tr>\
-                                <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['instance']}</td>\
-                                <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['url']}</td>\
-                            </tr>"
-            table_part1 += concat_str
+                table_part1 += concat_str
 
-        table_end = f"</table>\
-                        </div>\
-                        </div>\
-                        </div>"
-        table_part2 = table_part1 + table_end
-        table_part3 = f"<div style='width:800px;height:auto;margin: auto;padding: 30px; text-align: center;'>\
+            table_end = f"</table>\
+                            </div>\
+                            </div>\
+                            </div>"
+            table_part2 = table_part1 + table_end
+
+        table_part3 = f"<div style='width:1000px;height:auto;margin: auto;padding: 30px; text-align: center;'>\
                             <h2 style='color:#000000;margin: 0;'> Login Success Pages</h2>\
                             <div style='width:100%;margin:auto;text-align: center;'>\
                             <div style='padding:5px;'>\
                                 <table style='font-family: arial, sans-serif;border-collapse: collapse;width: 100%;'>\
                                 <tr>\
-                                    <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Instance</th><th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Url</th>\
+                                    <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Website Name</th>\
+                                    <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Url</th>\
+                                    <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>User Name</th>\
+                                    <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Password</th>\
                                 </tr>"
         for index,row in success_pages.iterrows():
             concat_str = f"<tr>\
                                 <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['instance']}</td>\
                                 <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['url']}</td>\
+                                <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['username']}</td>\
+                                <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['password']}</td>\
                             </tr>"
             table_part3 += concat_str
             
@@ -147,17 +183,15 @@ class DashBoardTester:
                         </html>"
             
         complete_html = table_part2 + table_part3 + end_html
+
+        ''' Uncomment below 2 lines if u want to check html format before sending email '''
+        # with open('index_login.html','w') as file:
+        #     file.write(complete_html)
         
         # print(complete_html)          
         
-        # failed_pages_html = unsuccess_pages.to_html()
-        # success_pages_html = success_pages.to_html()
-
-        # msg = f"<html><head></head><body><h2> Failed Login Websites </h2><p>{failed_pages_html}</p><h2> Successful Login Pages </h2><div>{success_pages_html}</div></body></html>"
-        # cls.send_email(complete_html)
-
         cls.__browser.close()
-        return complete_html
+        return complete_html , failed_count
     
     @staticmethod
     def send_email(text_message):
@@ -181,7 +215,7 @@ class DashBoardTester:
 
     
 if __name__ == "__main__":
-    hmtl = DashBoardTester.test_requests()
+    hmtl , count = DashBoardTester.test_requests()
     # DashBoardTester.send_email("Mail Success")
     # dashboard = DashBoardTester()
     

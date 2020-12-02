@@ -46,48 +46,66 @@ class HomePageTester:
                 
                 print(f"Request Unsuccessful for {url[2]}")
                 # print("Status code : ", response)
-                # msg = f"Status code {response} occur while requesting this url : {url[1]}"
-                # cls.send_email(msg)
+               
             else:
                 print(f"Request successful for {url[2]}")
-                # msg = f"Request successful with status code {response}"
+                
             with open('test_webs.csv','a') as file:
 
                 fieldnames = ['instance','url','return_status']
                 writer = csv.DictWriter(file,fieldnames=fieldnames)
 
                 writer.writerow({'instance': url[1],'url': url[2],'return_status': response})
-                # cls.send_email(msg)
+                
 
         df = pandas.read_csv("test_webs.csv")
         unsuccess_webs = df[df['return_status'] != 200]
         success_webs = df[df['return_status'] == 200]
-        html_part1 = f"<html>\
-                        <head></head>\
-                        <body>\
-                            <div style='width:800px;height:auto;margin: auto;padding: 30px; text-align: center;'>\
-                            <h2 style='color:#aa222a;margin: 0;'>We cannot access these websites</h2>\
-                            <div style='width:100%;margin:auto;text-align: center;'>\
-                            <div style='padding:5px;'>\
-                                <table style='font-family: arial, sans-serif;border-collapse: collapse;width: 100%;'>\
-                                <tr>\
-                                    <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Instance</th>\
-                                    <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Url</th>\
-                                    <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Return_Status</th>\
+        if unsuccess_webs.empty:
+            failed_count = 0
+            html_part2 = f"<html>\
+                          <head></head>\
+                          <body>\
+                              <header style='width: auto; height: auto; margin: auto;padding: 30px; text-align: left;'>\
+                                  <h2 style='color:#000000'>Website Status Check</h2>\
+                                  <hr>\
+                              </header>\
+                              <div style='width:800px;height:auto;margin: auto;padding: 30px; text-align: center;'>\
+                                <h2 style='color:#000000;margin: 0;'>There is no websites that can't access </h2>\
+                              </div>\
+                            "
+        else:
+            failed_count = len(unsuccess_webs)
+            html_part1 = f"<html>\
+                            <head></head>\
+                            <body>\
+                                <header style='width: auto; height: auto; margin: auto;padding: 30px; text-align: left;'>\
+                                  <h2 style='color:#000000'>Website Status Check</h2>\
+                                  <hr>\
+                               </header>\
+                                <div style='width:800px;height:auto;margin: auto;padding: 30px; text-align: center;'>\
+                                <h2 style='color:#aa222a;margin: 0;'>We cannot access these websites</h2>\
+                                <div style='width:100%;margin:auto;text-align: center;'>\
+                                <div style='padding:5px;'>\
+                                    <table style='font-family: arial, sans-serif;border-collapse: collapse;width: 100%;'>\
+                                    <tr>\
+                                        <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Website Name</th>\
+                                        <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Url</th>\
+                                        <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Return_Status</th>\
+                                    </tr>"
+            for index , row in unsuccess_webs.iterrows():
+                concat_str = f"<tr>\
+                                    <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['instance']}</td>\
+                                    <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['url']}</td>\
+                                    <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['return_status']}</td>\
                                 </tr>"
-        for index , row in unsuccess_webs.iterrows():
-            concat_str = f"<tr>\
-                                <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['instance']}</td>\
-                                <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['url']}</td>\
-                                <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['return_status']}</td>\
-                            </tr>"
-            html_part1 += concat_str
+                html_part1 += concat_str
 
-        html_part1_end = f"</table>\
-                           </div>\
-                           </div>\
-                           </div>"
-        html_part2 = html_part1 + html_part1_end
+            html_part1_end = f"</table>\
+                            </div>\
+                            </div>\
+                            </div>"
+            html_part2 = html_part1 + html_part1_end
 
         html_part3 = f"<div style='width:800px;height:auto;margin: auto;padding: 30px; text-align: center;'>\
                             <h2 style='color:#000000;margin: 0;'>These websites have no issues</h2>\
@@ -95,15 +113,13 @@ class HomePageTester:
                             <div style='padding:5px;'>\
                                 <table style='font-family: arial, sans-serif;border-collapse: collapse;width: 100%;'>\
                                 <tr>\
-                                    <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Instance</th>\
+                                    <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Website Name</th>\
                                     <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Url</th>\
-                                    <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Return_Status</th>\
                                 </tr>"
         for index , row in success_webs.iterrows():
             concat_str = f"<tr>\
                                 <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['instance']}</td>\
                                 <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['url']}</td>\
-                                <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['return_status']}</td>\
                             </tr>"
             html_part3 += concat_str
 
@@ -115,14 +131,12 @@ class HomePageTester:
                         </html>"
         complete_html = html_part2 + html_part3 + end_html
 
-        # print(unsuccess_webs)
-        # print(success_webs)
-        # unsuccess_webs_html = unsuccess_webs.to_html()
-        # success_webs_html = success_webs.to_html()
-        # msg = f"<html><head></head><body><h2>We cannot access these websites </h2><p>{unsuccess_webs_html}</p><h2> These websites have no issues </h2><div>{success_webs_html}</div></body></html>"
-        return complete_html
-        # cls.send_email(complete_html)
-        # print(unsuccess_webs_html)
+        ''' Uncomment below 2 lines if u want to check html format before sending email '''
+        # with open('index_status.html','w') as file:
+        #     file.write(complete_html)
+        
+        return complete_html , failed_count
+    
 
     @staticmethod
     def send_email(html):
@@ -153,6 +167,6 @@ class HomePageTester:
             smt.send_message(msg)
 
 if __name__ == "__main__":
-    HomePageTester.test_requests() 
+    html ,count = HomePageTester.test_requests() 
     # HomePageTester.send_email("Mail Successful")
 

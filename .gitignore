@@ -4,3 +4,8 @@ drivers/*driver
 drivers/*driver.exe
 load_data.py
 fb_login_test.py
+DbTester.py
+test_webs.csv
+success_login_webs.csv
+failed_login_webs.csv
+index_*
