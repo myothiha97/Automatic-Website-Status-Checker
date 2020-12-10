@@ -1,5 +1,6 @@
 import requests
 from decouple import config
+import datetime
 
 from mysql.connector import connect
 import smtpd
@@ -35,27 +36,32 @@ class HomePageTester:
     @classmethod
     def test_requests(cls):
         with open('test_webs.csv','w') as file:
-            fieldnames = ['instance','url','return_status']
+            fieldnames = ['instance','url','return_status','response_time']
             writer = csv.DictWriter(file,fieldnames=fieldnames)
             writer.writeheader()
 
         urls = cls.get_urls()
         for url in urls:
+            begin_time = datetime.datetime.now()
             response = requests.get(url[2]).status_code
+            time_diff = datetime.datetime.now() - begin_time
+            # response_time = time_diff.strftime("%M min %S sec")
+            total_sec  = time_diff.total_seconds()
+            response_time = '{} min {} sec'.format(round(total_sec % 3600 // 60 ), round(total_sec % 60))
             if int(response) != 200:
                 
-                print(f"Request Unsuccessful for {url[2]}")
+                print(f"Request Unsuccessful for {url[2]} , response_time : {response_time}")
                 # print("Status code : ", response)
                
             else:
-                print(f"Request successful for {url[2]}")
+                print(f"Request successful for {url[2]} , response_time : {response_time}")
                 
             with open('test_webs.csv','a') as file:
 
-                fieldnames = ['instance','url','return_status']
+                fieldnames = ['instance','url','return_status','response_time']
                 writer = csv.DictWriter(file,fieldnames=fieldnames)
 
-                writer.writerow({'instance': url[1],'url': url[2],'return_status': response})
+                writer.writerow({'instance': url[1],'url': url[2],'return_status': response ,'response_time': response_time})
                 
 
         df = pandas.read_csv("test_webs.csv")
@@ -92,12 +98,14 @@ class HomePageTester:
                                         <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Website Name</th>\
                                         <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Url</th>\
                                         <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Return_Status</th>\
+                                        <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Response Time</th>\
                                     </tr>"
             for index , row in unsuccess_webs.iterrows():
                 concat_str = f"<tr>\
                                     <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['instance']}</td>\
                                     <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['url']}</td>\
                                     <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['return_status']}</td>\
+                                    <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['response_time']}</td>\
                                 </tr>"
                 html_part1 += concat_str
 
@@ -115,11 +123,13 @@ class HomePageTester:
                                 <tr>\
                                     <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Website Name</th>\
                                     <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Url</th>\
+                                    <th style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>Response Time</th>\
                                 </tr>"
         for index , row in success_webs.iterrows():
             concat_str = f"<tr>\
                                 <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['instance']}</td>\
                                 <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['url']}</td>\
+                                <td style='border: 1px solid #dddddd;text-align: left;padding: 8px;color: #000000;'>{row['response_time']}</td>\
                             </tr>"
             html_part3 += concat_str
 
