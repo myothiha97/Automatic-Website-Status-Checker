@@ -1,6 +1,7 @@
 import requests
 from decouple import config
 import datetime
+import time
 
 from mysql.connector import connect
 import smtpd
@@ -45,9 +46,13 @@ class HomePageTester:
             begin_time = datetime.datetime.now()
             response = requests.get(url[2]).status_code
             time_diff = datetime.datetime.now() - begin_time
-            # response_time = time_diff.strftime("%M min %S sec")
-            total_sec  = time_diff.total_seconds()
-            response_time = '{} min {} sec'.format(round(total_sec % 3600 // 60 ), round(total_sec % 60))
+            format_time  = str(datetime.timedelta(seconds = time_diff.total_seconds()))
+            hr , mins , sec = format_time.split(':')
+            mins = round(float(mins))
+            sec = round(float(sec))
+            # response_time = '{} min {} sec'.format(round(total_sec % 3600 // 60 ), round(total_sec % 60))
+            # response_time = time.strftime("%M min %S sec" , time.gmtime(time_diff))
+            response_time = f"{mins} min {sec} sec"
             if int(response) != 200:
                 
                 print(f"Request Unsuccessful for {url[2]} , response_time : {response_time}")
