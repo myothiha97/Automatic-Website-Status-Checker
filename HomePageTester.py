@@ -44,7 +44,11 @@ class HomePageTester:
         urls = cls.get_urls()
         for url in urls:
             begin_time = datetime.datetime.now()
-            response = requests.get(url[2]).status_code
+            try:
+                response = requests.get(url[2],timeout=30).status_code
+                print(type(response) , response)
+            except:
+                response = "Response Timeout"
             time_diff = datetime.datetime.now() - begin_time
             format_time  = str(datetime.timedelta(seconds = time_diff.total_seconds()))
             hr , mins , sec = format_time.split(':')
@@ -53,7 +57,7 @@ class HomePageTester:
             # response_time = '{} min {} sec'.format(round(total_sec % 3600 // 60 ), round(total_sec % 60))
             # response_time = time.strftime("%M min %S sec" , time.gmtime(time_diff))
             response_time = f"{mins} min {sec} sec"
-            if int(response) != 200:
+            if response != 200:
                 
                 print(f"Request Unsuccessful for {url[2]} , response_time : {response_time}")
                 # print("Status code : ", response)
@@ -70,8 +74,8 @@ class HomePageTester:
                 
 
         df = pandas.read_csv("test_webs.csv")
-        unsuccess_webs = df[df['return_status'] != 200]
-        success_webs = df[df['return_status'] == 200]
+        unsuccess_webs = df[df['return_status'] != '200']
+        success_webs = df[df['return_status'] == '200']
         if unsuccess_webs.empty:
             failed_count = 0
             html_part2 = f"<html>\
@@ -149,7 +153,8 @@ class HomePageTester:
         ''' Uncomment below 2 lines if u want to check html format before sending email '''
         # with open('index_status.html','w') as file:
         #     file.write(complete_html)
-        
+        print(unsuccess_webs)
+        print(success_webs)
         return complete_html , failed_count
     
 
