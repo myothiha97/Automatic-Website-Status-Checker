@@ -74,8 +74,13 @@ class HomePageTester:
                 
 
         df = pandas.read_csv("test_webs.csv")
-        unsuccess_webs = df[df['return_status'] != '200']
-        success_webs = df[df['return_status'] == '200']
+        if df.dtypes['return_status'] == 'object':
+            unsuccess_webs = df[df['return_status'] != '200']
+            success_webs = df[df['return_status'] == '200']
+        else:
+            unsuccess_webs = df[df['return_status'] != 200]
+            success_webs = df[df['return_status'] == 200]
+            
         if unsuccess_webs.empty:
             failed_count = 0
             html_part2 = f"<html>\
