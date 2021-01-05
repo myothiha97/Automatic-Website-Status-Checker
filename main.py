@@ -2,6 +2,8 @@ from DashBoardTester import DashBoardTester
 from HomePageTester import HomePageTester
 
 from decouple import config
+import datetime
+import json
 
 import smtpd
 import smtplib
@@ -39,9 +41,33 @@ from decouple import config
 
 if __name__ == "__main__": 
     
-    htm1 , failed_status_count = HomePageTester.test_requests()
-    html2 , failed_login_count = DashBoardTester.test_requests()
-    total_failed_count = failed_status_count + failed_login_count
-    send_email(htm1,html2 , total_failed_count)
+    htm1 , failed_status_count , failed_homepages = HomePageTester.test_requests()
+    html2 , failed_login_count , failed_dashboards = DashBoardTester.test_requests()
+    current_time = int(datetime.datetime.now().strftime("%H"))
+    # current_time = 18
+    print(f"current_time ------------> {current_time}")
+    if current_time >= 18:
+        print("The current hour reach or past the 18 hr.")
+
+        with open("websites_results.txt","r") as file:
+            web_result = json.load(file)
+        with open("dashboard_results.txt",'r') as file:
+            dash_result = json.load(file)
+
+        if web_result == failed_homepages and dash_result == failed_dashboards:
+            print('The result are same as morning')
+        else:
+            print('There are some difference in results')
+            total_failed_count = failed_status_count + failed_login_count
+            send_email(htm1,html2 , total_failed_count)
+    else:
+        print("The current hour doesnt reach to 18 hr yet !!")
+        total_failed_count = failed_status_count + failed_login_count
+        send_email(htm1,html2 , total_failed_count)
+    with open("websites_results.txt",'w') as file:
+        json.dump(failed_homepages,file)
+
+    with open('dashboard_results.txt','w') as file:
+        json.dump(failed_dashboards,file)
 
     

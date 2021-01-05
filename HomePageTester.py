@@ -42,6 +42,7 @@ class HomePageTester:
             writer.writeheader()
 
         urls = cls.get_urls()
+        failed_websites = []
         for url in urls:
             begin_time = datetime.datetime.now()
             try:
@@ -60,6 +61,7 @@ class HomePageTester:
             if response != 200:
                 
                 print(f"Request Unsuccessful for {url[2]} , response_time : {response_time}")
+                failed_websites.append(url[1])
                 # print("Status code : ", response)
                
             else:
@@ -160,7 +162,7 @@ class HomePageTester:
         #     file.write(complete_html)
         print(unsuccess_webs)
         print(success_webs)
-        return complete_html , failed_count
+        return complete_html , failed_count , failed_websites
     
 
     @staticmethod
